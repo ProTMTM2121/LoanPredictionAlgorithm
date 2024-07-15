@@ -1,0 +1,75 @@
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+
+# Example data (replace with your actual dataset)
+data = pd.read_csv("https://raw.githubusercontent.com/dphi-official/Datasets/master/Loan_Data/loan_train.csv" )
+
+df = pd.DataFrame(data)
+
+# Drop rows with NaN values
+rows_to_drop = []
+for index, row in df.iterrows():
+    if row.isnull().any():
+        rows_to_drop.append(index)
+print(rows_to_drop)
+df_clean = df.drop(rows_to_drop)
+# Drop Loan_ID column if present
+if 'Loan_ID' in df.columns:
+    df.drop(columns=['Loan_ID'], inplace=True)
+
+# Map categorical variables to integers
+genders_to_int = {'Male': 1, 'Female': 0}
+married_to_int = {'Yes': 1, 'No': 0}
+education_to_int = {'Graduated': 1, 'Not Graduated': 0}
+dependents_to_int = {'0': 0, '1': 1, '2': 2, '3+': 3}
+self_employment_to_int = {'Yes': 1, 'No': 0}
+property_area_to_int = {'Urban': 2, 'Semiurban': 1, 'Rural': 0}
+
+# Apply mappings to DataFrame
+df['Gender'] = df['Gender'].map(genders_to_int)
+df['Married'] = df['Married'].map(married_to_int)
+df['Education'] = df['Education'].map(education_to_int)
+df['Dependents'] = df['Dependents'].map(dependents_to_int)
+df['Self_Employed'] = df['Self_Employed'].map(self_employment_to_int)
+df['Property_Area'] = df['Property_Area'].map(property_area_to_int)
+
+# Define features and target variable
+X = df.drop(columns=['Loan_Status'])
+y = df['Loan_Status']
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+imputer = SimpleImputer(strategy='mean')
+X_train_imputed = imputer.fit_transform(X_train)
+X_test_imputed = imputer.fit_transform(X_test)
+
+# Standardize features
+# Standardize features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train_imputed)
+X_test_scaled = scaler.transform(X_test_imputed)
+
+# Train a logistic regression model
+clf_lr = LogisticRegression()
+clf_lr.fit(X_train_scaled, y_train)
+
+# Predict on test data
+y_pred = clf_lr.predict(X_test_scaled)
+
+# Evaluate model performance
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}\n')
+
+print('Classification Report:')
+print(classification_report(y_test, y_pred))
+
+print('\nConfusion Matrix:')
+print(confusion_matrix(y_test, y_pred))
+
+# Example of making a single prediction
+# Replace with actual input data for prediction
+
